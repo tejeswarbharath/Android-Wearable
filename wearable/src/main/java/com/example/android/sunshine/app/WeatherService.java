@@ -95,6 +95,14 @@ public class WeatherService extends CanvasWatchFaceService{
 
         private Paint mBackgroundColorPaint;
         private Paint mTextColorPaint;
+        Paint mWeatherIconPaint;
+        Paint mDatePaint;
+
+
+        private boolean mLowBitAmbient;
+        private boolean mAmbient;
+        private boolean mBurnInProtection;
+
 
         private boolean mHasTimeZoneReceiverBeenRegistered = false;
         private boolean mIsInMuteMode;
@@ -104,10 +112,10 @@ public class WeatherService extends CanvasWatchFaceService{
         private float mXOffset;
         private float mYOffset;
 
-        private Bitmap mWeatherIconBitmap;
-        private Bitmap mGrayWeatherIconBitmap;
-        private String mHighTemp;
-        private String mLowTemp;
+        Bitmap mWeatherIconBitmap;
+        Bitmap mGrayWeatherIconBitmap;
+        String mHighTemp;
+        String mLowTemp;
 
         private int mBackgroundColor = Color.parseColor( "black" );
         private int mTextColor = Color.parseColor( "red" );
@@ -329,7 +337,7 @@ public class WeatherService extends CanvasWatchFaceService{
 
             drawTimeText( canvas );
 
-            drawTemperatureText( canvas );
+            drawTemperatureText( canvas , bounds );
 
         }
 
@@ -342,8 +350,10 @@ public class WeatherService extends CanvasWatchFaceService{
 
         //Creating Time Text with help of canvas methdod
 
-        private void drawTimeText( Canvas canvas ) {
-            String timeText = getHourString() + ":" + String.format( "%02d", mDisplayTime.minute );
+        private void drawTimeText( Canvas canvas )
+        {
+            String timeText = getText();
+
             if( isInAmbientMode() || mIsInMuteMode ) {
                 timeText += ( mDisplayTime.hour < 12 ) ? "AM" : "PM";
             }
@@ -354,11 +364,62 @@ public class WeatherService extends CanvasWatchFaceService{
             canvas.drawText( timeText, mXOffset, mYOffset, mTextColorPaint );
         }
 
-        private void drawTemperatureText(Canvas canvas)
+        private void drawTemperatureText(Canvas canvas,Rect bounds)
         {
 
+            String timeText = getText();
 
+            int dummy = 0;
+            if (mAmbient) {
+                if(!mLowBitAmbient && !mBurnInProtection){
+                    dummy = 2;
+                }
+            }
+            else
+            {
+                dummy = 1;
+            }
 
+            if(dummy >0)
+            {
+
+                float y = getTextHeight(timeText, mTextColorPaint) + mYOffset - 20;
+
+                y += getTextHeight(timeText,mTextColorPaint);
+
+                float x = mXOffset;
+
+                x = (bounds.width() - (mWeatherIconBitmap.getWidth() + 20 + mTextColorPaint.measureText(mHighTemp)  )) /2;
+
+                if(dummy == 1)
+                {
+                    canvas.drawBitmap(mWeatherIconBitmap, x, y, mWeatherIconPaint);
+                }
+                else
+                {
+                    canvas.drawBitmap(mGrayWeatherIconBitmap, x, y, mWeatherIconPaint);
+                }
+
+                x += mWeatherIconBitmap.getWidth() + 5;
+                y = y + mWeatherIconBitmap.getHeight() /2;
+                canvas.drawText(mHighTemp,x , y -5   , mTextColorPaint);
+                y += getTextHeight(mHighTemp,mTextColorPaint);
+                canvas.drawText(mLowTemp,x , y +5   , mTextColorPaint);
+
+            }
+
+        }
+
+        private String getText()
+        {
+            return getHourString() + ":" + String.format( "%02d", mDisplayTime.minute);
+        }
+
+        private float getTextHeight(String text, Paint paint) {
+
+            Rect rect = new Rect();
+            paint.getTextBounds(text, 0, text.length(), rect);
+            return rect.height();
         }
 
         private String getHourString() {

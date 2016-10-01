@@ -310,19 +310,27 @@ public class WeatherService extends CanvasWatchFaceService{
         @Override
         public void onTimeTick()
         {
+
             super.onTimeTick();
             invalidate();
+
         }
 
         //Drawing out watch face manually
         @Override
-        public void onDraw(Canvas canvas, Rect bounds) {
+        public void onDraw(Canvas canvas, Rect bounds)
+        {
+
             super.onDraw(canvas, bounds);
 
             mDisplayTime.setToNow();
 
             drawBackground( canvas, bounds );
+
             drawTimeText( canvas );
+
+            drawTemperatureText( canvas );
+
         }
 
 
@@ -333,14 +341,24 @@ public class WeatherService extends CanvasWatchFaceService{
 
 
         //Creating Time Text with help of canvas methdod
+
         private void drawTimeText( Canvas canvas ) {
             String timeText = getHourString() + ":" + String.format( "%02d", mDisplayTime.minute );
             if( isInAmbientMode() || mIsInMuteMode ) {
                 timeText += ( mDisplayTime.hour < 12 ) ? "AM" : "PM";
-            } else {
+            }
+            else
+            {
                 timeText += String.format( ":%02d", mDisplayTime.second);
             }
             canvas.drawText( timeText, mXOffset, mYOffset, mTextColorPaint );
+        }
+
+        private void drawTemperatureText(Canvas canvas)
+        {
+
+
+
         }
 
         private String getHourString() {
@@ -356,7 +374,9 @@ public class WeatherService extends CanvasWatchFaceService{
         @Override // DataApi.DataListener
         public void onDataChanged(DataEventBuffer dataEvents) {
             Log.d(TAG, "onDataChanged");
-            for (DataEvent dataEvent : dataEvents) {
+            for (DataEvent dataEvent : dataEvents)
+            {
+
                 if (dataEvent.getType() != DataEvent.TYPE_CHANGED) {
                     continue;
                 }

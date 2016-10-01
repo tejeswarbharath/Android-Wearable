@@ -680,18 +680,19 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements
         Log.d("TAG","connected to google api client" );
     }
 
-    private void updateWearable(){
+    private void updateWearable()
+    {
         Context context = getContext();
         String locationQuery = Utility.getPreferredLocation(context);
         Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationQuery, System.currentTimeMillis());
 
         // we'll query our contentProvider, as always
         Cursor cursor = context.getContentResolver().query(weatherUri, NOTIFY_WEATHER_PROJECTION, null, null, null);
-        if (cursor.moveToFirst()) {
+        if (cursor.moveToFirst())
+        {
             int weatherId = cursor.getInt(INDEX_WEATHER_ID);
             double high = cursor.getDouble(INDEX_MAX_TEMP);
             double low = cursor.getDouble(INDEX_MIN_TEMP);
-
 
             Log.d("TAG","SENDING WEATHER DATA" );
             // Create a DataMap object and send it to the data layer

@@ -732,9 +732,12 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements
             PutDataRequest request = putDMR.asPutDataRequest();
             DataApi.DataItemResult result = Wearable.DataApi.putDataItem(mGoogleClient, request).await();
             Log.d(TAG,"THREAD WEATHER DATA" );
-            if (result.getStatus().isSuccess()) {
+            if (result.getStatus().isSuccess())
+            {
                 Log.v(TAG, "DataMap: " + dataMap + " sent successfully to data layer ");
-            } else {
+            }
+            else
+            {
                 // Log an error
                 Log.v(TAG, "ERROR: failed to send DataMap to data layer");
             }

@@ -16,6 +16,10 @@
 
 package com.example.android.sunshine.app;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -60,6 +64,8 @@ public class WeatherService extends CanvasWatchFaceService{
 
     private static final String TAG = WeatherService.class.getSimpleName();
 
+    //private final Time time;
+
     @Override
     public Engine onCreateEngine()
     {
@@ -73,7 +79,6 @@ public class WeatherService extends CanvasWatchFaceService{
 
         //private static final String COUNT_KEY = "com.example.key.count";
         //private int count = 0;
-
         //Member variables
         private Typeface WATCH_TEXT_TYPEFACE = Typeface.create( Typeface.SERIF, Typeface.NORMAL );
 
@@ -92,11 +97,17 @@ public class WeatherService extends CanvasWatchFaceService{
         private long DEFAULT_UPDATE_RATE_MS=500;
 
         private Time mDisplayTime;
+        private static final String DATE_FORMAT = "%02d.%02d.%d";
 
         private Paint mBackgroundColorPaint;
         private Paint mTextColorPaint;
+        private Rect bounds;
         Paint mWeatherIconPaint;
         Paint mDatePaint;
+
+        private Calendar mCalendar;
+        private SimpleDateFormat mDayOfWeekFormat;
+        private Date mDate;
 
 
         private boolean mLowBitAmbient;
@@ -107,10 +118,13 @@ public class WeatherService extends CanvasWatchFaceService{
         private boolean mHasTimeZoneReceiverBeenRegistered = false;
         private boolean mIsInMuteMode;
         private boolean mIsLowBitAmbient;
+        private boolean mRound;
 
         //Watch face drawn without cuts at the corners
         private float mXOffset;
         private float mYOffset;
+        private float mCenterX;
+        private float mCenterY;
 
         Bitmap mWeatherIconBitmap;
         Bitmap mGrayWeatherIconBitmap;
@@ -138,13 +152,16 @@ public class WeatherService extends CanvasWatchFaceService{
         };
 
         //handler to take care of updating watch face every second
-        private final Handler mTimeHandler = new Handler() {
+        private final Handler mTimeHandler = new Handler()
+        {
             @Override
-            public void handleMessage(Message msg) {
+            public void handleMessage(Message msg)
+            {
                 switch( msg.what ) {
                     case MSG_UPDATE_TIME_ID: {
                         invalidate();
-                        if( isVisible() && !isInAmbientMode() ) {
+                        if( isVisible() && !isInAmbientMode() )
+                        {
                             long currentTimeMillis = System.currentTimeMillis();
                             long delay = mUpdateRateMs - ( currentTimeMillis % mUpdateRateMs );
                             mTimeHandler.sendEmptyMessageDelayed( MSG_UPDATE_TIME_ID, delay );
@@ -159,7 +176,8 @@ public class WeatherService extends CanvasWatchFaceService{
         //Not to display default time
 
         @Override
-        public void onCreate(SurfaceHolder holder) {
+        public void onCreate(SurfaceHolder holder)
+        {
 
             super.onCreate(holder);
 
@@ -192,12 +210,18 @@ public class WeatherService extends CanvasWatchFaceService{
 
             mTextColorPaint = new Paint();
             mTextColorPaint.setColor( mTextColor );
+
             mTextColorPaint.setTypeface( WATCH_TEXT_TYPEFACE );
-            mTextColorPaint.setAntiAlias( true );   //Reduce the clarity of text inorder to perform well
+            mTextColorPaint.setAntiAlias( true );    //Reduce the clarity of text inorder to perform well
             mTextColorPaint.setTextSize( getResources().getDimension( R.dimen.text_size ) );
 
-        }
+            mDatePaint = new Paint();
+            mDatePaint.setColor( mTextColor );
+            mDatePaint.setAntiAlias( true );
+            mDatePaint.setTypeface( WATCH_TEXT_TYPEFACE );
+            mDatePaint.setTextSize( getResources().getDimension( R.dimen.text_size ) );
 
+        }
 
         @Override
         public void onVisibilityChanged( boolean visible ) {
@@ -248,13 +272,16 @@ public class WeatherService extends CanvasWatchFaceService{
         //used for round and squared
         @Override
         public void onApplyWindowInsets(WindowInsets insets) {
+
             super.onApplyWindowInsets(insets);
-
             mYOffset = getResources().getDimension( R.dimen.y_offset );
-
-            if( insets.isRound() ) {
+            if( insets.isRound() )
+            {
                 mXOffset = getResources().getDimension( R.dimen.x_offset_round );
-            } else {
+                //float timeYOffset = computeYOffset(mTextColorPaint, bounds);
+            }
+            else
+            {
                 mXOffset = getResources().getDimension( R.dimen.x_offset_square );
             }
         }
@@ -273,33 +300,47 @@ public class WeatherService extends CanvasWatchFaceService{
         //differs background colour in ambient and interactive
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
+
             super.onAmbientModeChanged(inAmbientMode);
 
-            if( inAmbientMode ) {
+            if( inAmbientMode )
+            {
+
                 mTextColorPaint.setColor( Color.parseColor( "white" ) );
-            } else {
+
+            }
+            else
+            {
+
                 mTextColorPaint.setColor( Color.parseColor( "red" ) );
-            }
 
-            if( mIsLowBitAmbient ) {
+            }
+            if( mIsLowBitAmbient )
+            {
+
                 mTextColorPaint.setAntiAlias( !inAmbientMode );
-            }
 
+            }
             invalidate();
             updateTimer();
+
         }
 
 
         //when there are Interruptions like Settings menu.update the Watch face accordingly
         //update timer every minute rather than every second
         @Override
-        public void onInterruptionFilterChanged(int interruptionFilter) {
+        public void onInterruptionFilterChanged(int interruptionFilter)
+        {
+
             super.onInterruptionFilterChanged(interruptionFilter);
 
             boolean isDeviceMuted = ( interruptionFilter == android.support.wearable.watchface.WatchFaceService.INTERRUPTION_FILTER_NONE );
             if( isDeviceMuted ) {
                 mUpdateRateMs = TimeUnit.MINUTES.toMillis( 1 );
-            } else {
+            }
+            else
+            {
                 mUpdateRateMs = DEFAULT_UPDATE_RATE_MS;
             }
 
@@ -337,63 +378,96 @@ public class WeatherService extends CanvasWatchFaceService{
 
             drawTimeText( canvas );
 
+            drawDate( canvas , bounds );
+
             drawTemperatureText( canvas , bounds );
 
         }
 
 
         //Applying solid colour to background of wear device
-        private void drawBackground( Canvas canvas, Rect bounds ) {
+        private void drawBackground( Canvas canvas, Rect bounds )
+        {
             canvas.drawRect( 0, 0, bounds.width(), bounds.height(), mBackgroundColorPaint );
         }
-
 
         //Creating Time Text with help of canvas methdod
 
         private void drawTimeText( Canvas canvas )
         {
+
             String timeText = getText();
 
-            if( isInAmbientMode() || mIsInMuteMode ) {
+            if( isInAmbientMode() || mIsInMuteMode )
+            {
+
                 timeText += ( mDisplayTime.hour < 12 ) ? "AM" : "PM";
+
             }
             else
             {
+
                 timeText += String.format( ":%02d", mDisplayTime.second);
+
             }
+
             canvas.drawText( timeText, mXOffset, mYOffset, mTextColorPaint );
+
         }
 
-        private void drawTemperatureText(Canvas canvas,Rect bounds)
+        public void drawDate(Canvas canvas,Rect bounds)
         {
+
+            String timeText = getText();
+
+            String dateText = String.format(DATE_FORMAT, mDisplayTime.monthDay,(mDisplayTime.month + 1), mDisplayTime.year);
+
+            float y = getTextHeight(timeText, mTextColorPaint) + mYOffset - 20;
+
+            y += getTextHeight(timeText, mTextColorPaint);
+
+            float x = mXOffset;
+
+            mDayOfWeekFormat = new SimpleDateFormat("EEE, dd MMMM", Locale.getDefault());
+
+            mDayOfWeekFormat.setCalendar(mCalendar);
+
+            String dayString = mDayOfWeekFormat.format(mDate);
+
+            x = (bounds.width() - mDatePaint.measureText(dayString)) / 2;
+
+            canvas.drawText(dayString, x, y, mDatePaint);
+
+        }
+
+        private void drawTemperatureText(Canvas canvas,Rect bounds) {
 
             String timeText = getText();
 
             int dummy = 0;
             if (mAmbient) {
-                if(!mLowBitAmbient && !mBurnInProtection){
+                if (!mLowBitAmbient && !mBurnInProtection) {
                     dummy = 2;
                 }
-            }
-            else
-            {
+            } else {
                 dummy = 1;
             }
 
-            if(dummy >0)
-            {
+            if (dummy > 0) {
 
                 float y = getTextHeight(timeText, mTextColorPaint) + mYOffset - 20;
 
-                y += getTextHeight(timeText,mTextColorPaint);
+                y += getTextHeight(timeText, mTextColorPaint);
 
                 float x = mXOffset;
 
-                x = (bounds.width() - (mWeatherIconBitmap.getWidth() + 20 + mTextColorPaint.measureText(mHighTemp)  )) /2;
+                x = (bounds.width() - (mWeatherIconBitmap.getWidth() + 20 + mTextColorPaint.measureText(mHighTemp))) / 2;
 
-                if(dummy == 1)
+                if (dummy == 1)
                 {
+
                     canvas.drawBitmap(mWeatherIconBitmap, x, y, mWeatherIconPaint);
+
                 }
                 else
                 {
@@ -401,14 +475,24 @@ public class WeatherService extends CanvasWatchFaceService{
                 }
 
                 x += mWeatherIconBitmap.getWidth() + 5;
-                y = y + mWeatherIconBitmap.getHeight() /2;
-                canvas.drawText(mHighTemp,x , y -5   , mTextColorPaint);
-                y += getTextHeight(mHighTemp,mTextColorPaint);
-                canvas.drawText(mLowTemp,x , y +5   , mTextColorPaint);
+                y = y + mWeatherIconBitmap.getHeight() / 2;
+                canvas.drawText(mHighTemp, x, y - 5, mTextColorPaint);
+                y += getTextHeight(mHighTemp, mTextColorPaint);
+                canvas.drawText(mLowTemp, x, y + 5, mTextColorPaint);
 
             }
 
         }
+
+    /**    private float computeYOffset(Paint paint, Rect watchBounds)
+        {
+            String timeText = getText();
+            float centerY = watchBounds.exactCenterY();
+            Rect textBounds = new Rect();
+            paint.getTextBounds(timeText, 0, timeText.length(), textBounds);
+            int textHeight = textBounds.height();
+            return centerY + (textHeight / 2.0f);
+        }**/
 
         private String getText()
         {
@@ -443,8 +527,7 @@ public class WeatherService extends CanvasWatchFaceService{
                 }
 
                 DataItem dataItem = dataEvent.getDataItem();
-                if (!dataItem.getUri().getPath().equals(
-                        WEARABLE_DATA_PATH)) {
+                if (!dataItem.getUri().getPath().equals(WEARABLE_DATA_PATH)) {
                     continue;
                 }
 

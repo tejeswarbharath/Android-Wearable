@@ -132,6 +132,7 @@
                 android:name="color"
                 android:value="@color/primary"/>
         </service>
+
         <!-- Today Widget -->
         <receiver
             android:name=".widget.TodayWidgetProvider"

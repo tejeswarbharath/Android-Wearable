@@ -5,7 +5,6 @@
     <dimen name="digital_date_size">12dp</dimen>
     <dimen name="digital_date_size_round">17dp</dimen>
 
-
     <dimen name="x_offset_square">15dp</dimen>
     <dimen name="x_offset_round">25dp</dimen>
     <dimen name="y_offset">80dp</dimen>

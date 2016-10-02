@@ -190,6 +190,10 @@ public class WeatherService extends CanvasWatchFaceService{
 
             mDisplayTime = new Time(); //mDisplayTime is new Customized Time Object
 
+            mCalendar = Calendar.getInstance();
+
+            mDate = new Date();
+
             initBackground();
 
             initDisplayText();
@@ -210,9 +214,8 @@ public class WeatherService extends CanvasWatchFaceService{
 
             mTextColorPaint = new Paint();
             mTextColorPaint.setColor( mTextColor );
-
             mTextColorPaint.setTypeface( WATCH_TEXT_TYPEFACE );
-            mTextColorPaint.setAntiAlias( true );    //Reduce the clarity of text inorder to perform well
+            mTextColorPaint.setAntiAlias( true );
             mTextColorPaint.setTextSize( getResources().getDimension( R.dimen.text_size ) );
 
             mDatePaint = new Paint();
@@ -220,6 +223,8 @@ public class WeatherService extends CanvasWatchFaceService{
             mDatePaint.setAntiAlias( true );
             mDatePaint.setTypeface( WATCH_TEXT_TYPEFACE );
             mDatePaint.setTextSize( getResources().getDimension( R.dimen.text_size ) );
+
+            mWeatherIconPaint = new Paint();
 
         }
 
@@ -278,7 +283,6 @@ public class WeatherService extends CanvasWatchFaceService{
             if( insets.isRound() )
             {
                 mXOffset = getResources().getDimension( R.dimen.x_offset_round );
-                //float timeYOffset = computeYOffset(mTextColorPaint, bounds);
             }
             else
             {
@@ -307,12 +311,15 @@ public class WeatherService extends CanvasWatchFaceService{
             {
 
                 mTextColorPaint.setColor( Color.parseColor( "white" ) );
-
+                mDatePaint.setColor( Color.parseColor( "white" ) );
+                //mLowTemp.setColor( Color.parseColor( "white" ) );
+                //mHighTemp.setColor( Color.parseColor( "white" ) );
             }
             else
             {
 
                 mTextColorPaint.setColor( Color.parseColor( "red" ) );
+                mDatePaint.setColor( Color.parseColor( "red" ) );
 
             }
             if( mIsLowBitAmbient )
@@ -374,29 +381,15 @@ public class WeatherService extends CanvasWatchFaceService{
 
             mDisplayTime.setToNow();
 
-            drawBackground( canvas, bounds );
 
-            drawTimeText( canvas );
+            //background color
 
-            drawDate( canvas , bounds );
-
-            drawTemperatureText( canvas , bounds );
-
-        }
-
-
-        //Applying solid colour to background of wear device
-        private void drawBackground( Canvas canvas, Rect bounds )
-        {
             canvas.drawRect( 0, 0, bounds.width(), bounds.height(), mBackgroundColorPaint );
-        }
 
-        //Creating Time Text with help of canvas methdod
 
-        private void drawTimeText( Canvas canvas )
-        {
+            //time
 
-            String timeText = getText();
+            String timeText = getHourString() + ":" + String.format( "%02d", mDisplayTime.minute);
 
             if( isInAmbientMode() || mIsInMuteMode )
             {
@@ -413,18 +406,20 @@ public class WeatherService extends CanvasWatchFaceService{
 
             canvas.drawText( timeText, mXOffset, mYOffset, mTextColorPaint );
 
-        }
 
-        public void drawDate(Canvas canvas,Rect bounds)
-        {
-
-            String timeText = getText();
+            //date
 
             String dateText = String.format(DATE_FORMAT, mDisplayTime.monthDay,(mDisplayTime.month + 1), mDisplayTime.year);
 
-            float y = getTextHeight(timeText, mTextColorPaint) + mYOffset - 20;
+            long now = System.currentTimeMillis();
 
-            y += getTextHeight(timeText, mTextColorPaint);
+            mCalendar.setTimeInMillis(now);
+
+            mDate.setTime(now);
+
+            float y = getTextHeight(dateText, mTextColorPaint) + mYOffset - 20;
+
+            y += getTextHeight(dateText, mTextColorPaint);
 
             float x = mXOffset;
 
@@ -438,11 +433,8 @@ public class WeatherService extends CanvasWatchFaceService{
 
             canvas.drawText(dayString, x, y, mDatePaint);
 
-        }
 
-        private void drawTemperatureText(Canvas canvas,Rect bounds) {
-
-            String timeText = getText();
+            //temperature
 
             int dummy = 0;
             if (mAmbient) {
@@ -455,11 +447,11 @@ public class WeatherService extends CanvasWatchFaceService{
 
             if (dummy > 0) {
 
-                float y = getTextHeight(timeText, mTextColorPaint) + mYOffset - 20;
+                y = getTextHeight(dayString, mDatePaint) + mYOffset - 20;
 
-                y += getTextHeight(timeText, mTextColorPaint);
+                y += getTextHeight(timeText, mDatePaint);
 
-                float x = mXOffset;
+                x = mXOffset;
 
                 x = (bounds.width() - (mWeatherIconBitmap.getWidth() + 20 + mTextColorPaint.measureText(mHighTemp))) / 2;
 
@@ -471,32 +463,23 @@ public class WeatherService extends CanvasWatchFaceService{
                 }
                 else
                 {
+
                     canvas.drawBitmap(mGrayWeatherIconBitmap, x, y, mWeatherIconPaint);
+
                 }
 
                 x += mWeatherIconBitmap.getWidth() + 5;
+
                 y = y + mWeatherIconBitmap.getHeight() / 2;
-                canvas.drawText(mHighTemp, x, y - 5, mTextColorPaint);
+
+                canvas.drawText(mHighTemp, x, y - 5, mDatePaint);
+
                 y += getTextHeight(mHighTemp, mTextColorPaint);
-                canvas.drawText(mLowTemp, x, y + 5, mTextColorPaint);
+
+                canvas.drawText(mLowTemp, x, y + 5, mDatePaint);
 
             }
 
-        }
-
-    /**    private float computeYOffset(Paint paint, Rect watchBounds)
-        {
-            String timeText = getText();
-            float centerY = watchBounds.exactCenterY();
-            Rect textBounds = new Rect();
-            paint.getTextBounds(timeText, 0, timeText.length(), textBounds);
-            int textHeight = textBounds.height();
-            return centerY + (textHeight / 2.0f);
-        }**/
-
-        private String getText()
-        {
-            return getHourString() + ":" + String.format( "%02d", mDisplayTime.minute);
         }
 
         private float getTextHeight(String text, Paint paint) {

@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="text_size">23dp</dimen>
-    <dimen name="digital_text_size_round">45dp</dimen>
-    <dimen name="digital_date_size">12dp</dimen>
-    <dimen name="digital_date_size_round">17dp</dimen>
-
-    <dimen name="x_offset_square">15dp</dimen>
-    <dimen name="x_offset_round">25dp</dimen>
-    <dimen name="y_offset">80dp</dimen>
+    <dimen name="text_size">22sp</dimen>
+    <dimen name="x_offset_square">15sp</dimen>
+    <dimen name="x_offset_round">25sp</dimen>
+    <dimen name="y_offset">80sp</dimen>
 </resources>

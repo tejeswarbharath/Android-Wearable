@@ -127,7 +127,7 @@ public class WeatherService extends CanvasWatchFaceService{
         private float mCenterY;
 
         Bitmap mWeatherIconBitmap;
-        Bitmap mGrayWeatherIconBitmap;
+        //Bitmap mGrayWeatherIconBitmap;
         String mHighTemp;
         String mLowTemp;
 
@@ -140,7 +140,6 @@ public class WeatherService extends CanvasWatchFaceService{
                 .addOnConnectionFailedListener(this)
                 .addApi(Wearable.API)
                 .build();
-
 
         //this receiver clears the saved time zone and displays the changed timezone
         final BroadcastReceiver mTimeZoneBroadcastReceiver = new BroadcastReceiver() {
@@ -276,8 +275,8 @@ public class WeatherService extends CanvasWatchFaceService{
 
         //used for round and squared
         @Override
-        public void onApplyWindowInsets(WindowInsets insets) {
-
+        public void onApplyWindowInsets(WindowInsets insets)
+        {
             super.onApplyWindowInsets(insets);
             mYOffset = getResources().getDimension( R.dimen.y_offset );
             if( insets.isRound() )
@@ -312,8 +311,6 @@ public class WeatherService extends CanvasWatchFaceService{
 
                 mTextColorPaint.setColor( Color.parseColor( "white" ) );
                 mDatePaint.setColor( Color.parseColor( "white" ) );
-                //mLowTemp.setColor( Color.parseColor( "white" ) );
-                //mHighTemp.setColor( Color.parseColor( "white" ) );
             }
             else
             {
@@ -457,16 +454,16 @@ public class WeatherService extends CanvasWatchFaceService{
 
                 if (dummy == 1)
                 {
-
-                    canvas.drawBitmap(mWeatherIconBitmap, x, y, mWeatherIconPaint);
-
-                }
-                else
-                {
-
-                    canvas.drawBitmap(mGrayWeatherIconBitmap, x, y, mWeatherIconPaint);
+                    if(!isInAmbientMode())
+                            canvas.drawBitmap(mWeatherIconBitmap, x, y, mWeatherIconPaint);
 
                 }
+             //   else
+             //   {
+
+             //       canvas.drawBitmap(mGrayWeatherIconBitmap, x, y, mWeatherIconPaint);
+
+             //   }
 
                 x += mWeatherIconBitmap.getWidth() + 5;
 
@@ -489,7 +486,8 @@ public class WeatherService extends CanvasWatchFaceService{
             return rect.height();
         }
 
-        private String getHourString() {
+        private String getHourString()
+        {
             if( mDisplayTime.hour % 12 == 0 )
                 return "12";
             else if( mDisplayTime.hour <= 12 )
@@ -535,7 +533,7 @@ public class WeatherService extends CanvasWatchFaceService{
             int resIDBW = getResources().getIdentifier("ic_" + icon + "_bw" , "drawable", getPackageName());
 
             mWeatherIconBitmap = BitmapFactory.decodeResource(getResources(), resID);
-            mGrayWeatherIconBitmap= BitmapFactory.decodeResource(getResources(), resIDBW);
+            //mGrayWeatherIconBitmap= BitmapFactory.decodeResource(getResources(), resIDBW);
             mHighTemp = String.format("%3s",String.valueOf(high)) + "° C";
             mLowTemp = String.format("%3s",String.valueOf(low)) + "° C";
 

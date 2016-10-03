@@ -1,3 +1,9 @@
+Citations :
+============
+https://code.tutsplus.com/tutorials/creating-an-android-wear-watch-face--cms-23718
+
+https://developer.android.com/training/wearables/watch-faces/service.html
+
 Advanced Android Sample App
 ===================================
 
